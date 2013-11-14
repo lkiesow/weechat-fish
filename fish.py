@@ -262,6 +262,13 @@ def blowcrypt_pack(msg, cipher):
 
 def blowcrypt_unpack(msg, cipher):
     """."""
+
+    time = ''
+    # Ignore time from buffer playback
+    if msg.startswith('['):
+        time = ' '.join(msg.split(' ',2)[:2]) + ' '
+        msg = msg.split(' ',2)[2]
+
     if not (msg.startswith('+OK ') or msg.startswith('mcps ')):
         raise ValueError
     _, rest = msg.split(' ', 1)
@@ -283,7 +290,7 @@ def blowcrypt_unpack(msg, cipher):
     except ValueError:
         raise MalformedError
 
-    return plain.strip('\x00').replace('\n','')
+    return time + plain.strip('\x00').replace('\n','')
 
 
 #
@@ -605,7 +612,7 @@ def fish_modifier_in_privmsg_cb(data, modifier, server_name, string):
     global fish_keys, fish_cyphers
 
     match = re.match(
-        r"^(:(.*?)!.*? PRIVMSG (.*?) :)(\x01ACTION )?((\+OK |mcps )?.*?)(\x01)?$",
+        r"^(:(.*?)!.*? PRIVMSG (.*?) :)(\x01ACTION )?((\+OK |\[....-..-.. ..:..:..\] \+OK |mcps )?.*?)(\x01)?$",
         string)
     #match.group(0): message
     #match.group(1): msg without payload
